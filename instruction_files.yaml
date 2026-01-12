@@ -1,0 +1,16 @@
+# instruction_files.yaml
+# Registry of instruction documents intended to be read by language models.
+# Extend by appending new entries under `files:`.
+
+schema_version: 1
+
+files:
+  - id: vpath_instructions
+    title: "VPath MCP + VS Code Operations Instructions"
+    description: "Instructions for using VS Code Model Context Protocol (MCP) tools to operate on files, editor windows, terminals, notebooks, and language-server features."
+    # Use the canonical GitHub HTML URL (good for humans) and a raw URL (good for programmatic fetch).
+    url: "https://github.com/vpathai-git/public_files/blob/main/vpath_instructions.md"
+    raw_url: "https://raw.githubusercontent.com/vpathai-git/public_files/main/vpath_instructions.md"
+    content_type: "text/markdown"
+    language: "en"
+
