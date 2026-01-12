@@ -10,10 +10,10 @@ This document is intended to be read by a language model operating inside VS Cod
 
 ## Operating Principles
 
-1. **Don’t guess**
-   - If you don’t know a file path, search for it.
-   - If you don’t know a symbol definition, locate it.
-   - If you don’t know expected behavior, read existing tests/docs.
+1. **Don't guess**
+   - If you don't know a file path, search for it.
+   - If you don't know a symbol definition, locate it.
+   - If you don't know expected behavior, read existing tests/docs.
 
 2. **Prefer read-only discovery before edits**
    - Start by listing directories and reading relevant files.
@@ -25,154 +25,197 @@ This document is intended to be read by a language model operating inside VS Cod
    - Avoid reformatting unless required.
 
 4. **Validate your work**
-   - Run the narrowest relevant tests/commands.
-   - Re-check diagnostics after edits.
+   - Check diagnostics after edits.
+   - Use syntax validation before committing changes.
 
 5. **Be explicit about files and operations**
    - Always name the file(s) you will edit.
-   - Use a patch-based edit tool for modifications.
+   - Use the appropriate edit tool for modifications.
 
-## Tooling Overview (MCP in VS Code)
+## Available Tools
 
-You have access to tools that interact with the workspace.
-Use them instead of “imagining” project state.
+You have access to the following tools that interact with VS Code and the workspace. Use them instead of "imagining" project state.
 
-### Workspace navigation
+### Memory & Information
 
-- **List directory contents**: use when you need to see what files exist.
-  - Tool: `list_dir`
-  - Best for: exploring folder structure, confirming file names.
+| Tool | Description |
+|------|-------------|
+| `save_memory` | Saves specific facts or preferences about the user for future interactions. |
+| `google_web_search` | Performs a web search using Google to find information. |
 
-- **Search for files by glob**: use when you know a pattern.
-  - Tool: `file_search`
-  - Examples: `src/**`, `**/*.md`, `**/*test*.ts`
+### Task Management
 
-- **Search within files**: use when you’re hunting for symbols/strings.
-  - Tool: `grep_search`
-  - Prefer regex alternation (e.g., `parse|Parser|parsing`).
+| Tool | Description |
+|------|-------------|
+| `write_todos` | Manages a list of subtasks for complex requests. Use this to track progress on multi-step operations. |
 
-- **Semantic search**: use when you’re not sure what exact text appears.
-  - Tool: `semantic_search`
+### File System & Navigation
 
-### Reading code
+| Tool | Description |
+|------|-------------|
+| `vscode_list_directory` | Lists the contents of a directory. Use to explore folder structure and confirm file names. |
+| `vscode_read_file` | Reads the content of a file. **Important:** This shows unsaved changes in the editor buffer. |
+| `vscode_create_file` | Creates a new file with the specified content. |
+| `vscode_delete_file` | Deletes a file or directory. |
+| `vscode_move_file` | Moves or renames a file or directory. |
+| `vscode_copy_file` | Copies a file or directory to a new location. |
+| `vscode_get_file_info` | Gets information about a file or directory (stat: size, modified time, type). |
+| `vscode_get_cwd` | Gets the current working directory of the workspace. |
+| `vscode_find_files` | Finds files in the workspace using glob patterns. Examples: `**/*.ts`, `src/**/*.sysml` |
 
-- **Read file content by line range**:
-  - Tool: `read_file`
-  - Guidance:
-    - Prefer fewer, larger reads (e.g., 1–200) over many tiny reads.
-    - Re-read with an expanded range if needed.
+### Code Analysis & Navigation
 
-### Editing code
+| Tool | Description |
+|------|-------------|
+| `vscode_get_definition` | Go to Definition. Navigates to where a symbol is defined. |
+| `vscode_get_references` | Find All References. Locates all usages of a symbol across the workspace. |
+| `vscode_get_hover` | Gets hover information (types, documentation) at a specific position in a file. |
+| `vscode_get_symbols` | Gets all symbols (functions, classes, variables) in a file. |
+| `vscode_find_workspace_symbols` | Searches for symbols across the entire workspace by name. |
+| `vscode_get_diagnostics` | Gets all errors and warnings for files in the workspace. |
+| `vscode_diagnostics_for_file` | Gets diagnostics (errors, warnings) for a specific file. |
+| `vscode_validate_syntax` | Checks a file for syntax errors before making changes. |
 
-- **Modify existing files**:
-  - Tool: `apply_patch`
-  - Guidance:
-    - Use the smallest diff that accomplishes the task.
-    - Include enough surrounding context to uniquely locate the change.
-    - Avoid gratuitous formatting changes.
+### Code Editing
 
-- **Create new files**:
-  - Tool: `create_file`
+| Tool | Description |
+|------|-------------|
+| `copilot_replaceString` | **Preferred tool for making edits.** Replaces exact text in a file. Provide enough context for unique matching. |
+| `vscode_save_file` | Saves a file to disk. Use after making edits to persist changes. |
+| `vscode_edit_insert` | Inserts text at a specific line and character position. |
+| `vscode_edit_replace` | Replaces text in a specific range (start line/char to end line/char). |
+| `vscode_edit_delete` | Deletes text in a specific range. |
+| `vscode_apply_edit` | Applies atomic workspace edits across multiple files. |
+| `vscode_rename_symbol` | Renames a symbol across the workspace using semantic understanding (refactoring rename). |
 
-- **Create directories**:
-  - Tool: `create_directory`
+### Refactoring & Formatting
 
-### Diagnostics and correctness
+| Tool | Description |
+|------|-------------|
+| `vscode_refactor_get_actions` | Gets available refactoring actions at a position (extract method, inline, etc.). |
+| `vscode_refactor_format_document` | Formats an entire document according to the configured formatter. |
+| `vscode_refactor_organize_imports` | Organizes and sorts imports in a file. |
 
-- **Get VS Code problems/diagnostics**:
-  - Tool: `get_errors`
-  - Use after changes to ensure you didn’t introduce new errors.
+### Editor Control
 
-### Terminals, builds, and tests
-
-- **Run commands in a persistent terminal**:
-  - Tool: `run_in_terminal`
-  - Guidance:
-    - Prefer direct commands (avoid nested shells) unless necessary.
-    - Use absolute paths when changing directories.
-    - Keep output manageable (use `head`, `tail`, `grep`).
-
-- **If tasks.json is needed**:
-  - Tool: `create_and_run_task`
-
-### Notebook workflows
-
-If a Jupyter notebook exists in the workspace:
-
-- Get cell IDs: `copilot_getNotebookSummary`
-- Run a code cell: `run_notebook_cell`
-- Read existing output: `read_notebook_cell_output`
-- Edit cells: `edit_notebook_file`
-
-### Python + Pylance tools (when relevant)
-
-If you are working on Python code:
-
-1. **Configure environment** first
-   - Tool: `configure_python_environment`
-
-2. Run snippets safely (preferred over shell `python -c`):
-   - Tool: `mcp_pylance_mcp_s_pylanceRunCodeSnippet`
-
-3. Check syntax before running:
-   - Tool: `mcp_pylance_mcp_s_pylanceSyntaxErrors`
-
-4. Workspace import/analysis help:
-   - `mcp_pylance_mcp_s_pylanceImports`
-   - `mcp_pylance_mcp_s_pylanceInstalledTopLevelModules`
-   - `mcp_pylance_mcp_s_pylanceSettings`
-
-5. Safe refactors (when appropriate):
-   - Tool: `mcp_pylance_mcp_s_pylanceInvokeRefactoring`
+| Tool | Description |
+|------|-------------|
+| `vscode_run_command` | Runs any VS Code command by its command ID. Useful for triggering built-in functionality. |
 
 ## Recommended Workflow (Checklist)
 
-1. **Clarify the target**
-   - What file(s) are involved?
-   - What is the expected outcome?
+### 1. Clarify the target
+- What file(s) are involved?
+- What is the expected outcome?
 
-2. **Explore**
-   - `list_dir` / `file_search`
-   - `grep_search` / `semantic_search`
-   - `read_file`
+### 2. Explore
+- `vscode_list_directory` to see folder structure
+- `vscode_find_files` to locate files by pattern
+- `vscode_read_file` to examine content
+- `vscode_get_symbols` to understand file structure
 
-3. **Assess impact**
-   - Find usages before changing signatures.
-   - Identify tests/validation commands.
+### 3. Assess impact
+- `vscode_get_references` before changing public APIs
+- `vscode_get_definition` to understand symbol origins
+- Identify related tests or documentation
 
-4. **Edit**
-   - Use `apply_patch` for modifications.
-   - Prefer minimal diffs.
+### 4. Edit
+- Use `copilot_replaceString` for modifications (preferred)
+- Include enough surrounding context for unique matching
+- Prefer minimal, surgical changes
+- Use `vscode_save_file` to persist changes
 
-5. **Validate**
-   - `get_errors`
-   - `run_in_terminal` to run targeted tests or build steps.
+### 5. Validate
+- `vscode_diagnostics_for_file` to check for errors
+- `vscode_validate_syntax` to verify correctness
+- Review the changes made
 
-6. **Summarize**
-   - What changed (files + intent)?
-   - How to verify?
-   - Any known limitations?
+### 6. Summarize
+- What changed (files + intent)?
+- How to verify?
+- Any known limitations?
 
-## Editor and Language Server Operations
+## Tool Usage Best Practices
 
-When the task involves “what the editor sees” or language-server behavior:
+### Reading Files
+```
+vscode_read_file:
+  - Reads the editor buffer (includes unsaved changes)
+  - Prefer reading entire files when practical
+  - Use vscode_get_file_info first if you need metadata
+```
 
-- Use `get_errors` to confirm diagnostics.
-- Use `grep_search`/`semantic_search` to locate definitions/usages rather than relying on intuition.
-- Keep changes aligned with TypeScript/Node/Python build tooling present in the repo.
+### Making Edits
+```
+copilot_replaceString (preferred):
+  - Provide exact text to match
+  - Include 3-5 lines of surrounding context for unique identification
+  - Avoid matching text that appears multiple times without enough context
+
+vscode_edit_* tools:
+  - Use when you need precise line/character positioning
+  - vscode_edit_insert for adding new content
+  - vscode_edit_replace for modifying existing content
+  - vscode_edit_delete for removing content
+```
+
+### Finding Information
+```
+vscode_find_files:
+  - Use glob patterns: **/*.ts, src/**/*.sysml, **/test*.js
+  - Returns matching file paths
+
+vscode_find_workspace_symbols:
+  - Searches symbol names across all files
+  - Useful for finding class/function definitions by name
+
+vscode_get_references:
+  - Requires a file path and position
+  - Returns all locations where the symbol is used
+```
+
+### Diagnostics
+```
+vscode_get_diagnostics:
+  - Gets all problems in the workspace
+  - Use after making changes to verify no errors introduced
+
+vscode_diagnostics_for_file:
+  - Focused check on a single file
+  - More efficient when you know which file to check
+```
 
 ## Safety and Quality Rules
 
 - Never fabricate tool outputs.
 - Never claim a command succeeded without actually running it.
-- Don’t edit generated artifacts unless the task explicitly requires it.
-- Don’t leak secrets: avoid printing tokens, keys, or private URLs.
+- Don't edit generated artifacts unless the task explicitly requires it.
+- Don't leak secrets: avoid printing tokens, keys, or private URLs.
+- Always validate syntax after edits.
+- Save files explicitly when changes should persist.
+
+## SysML v2 Specific Guidance
+
+When working with SysML v2 files (`.sysml`, `.kerml`):
+
+1. **Use the language server features**
+   - `vscode_get_diagnostics` will show SysML-specific errors
+   - `vscode_get_definition` works for SysML symbols
+   - `vscode_get_hover` provides type information
+
+2. **Follow SysML v2 conventions**
+   - Package structures should be properly nested
+   - Use qualified names when referencing external elements
+   - Maintain consistency with existing model patterns
+
+3. **Validate before and after changes**
+   - Check diagnostics before editing to understand baseline
+   - Re-check after edits to ensure no new errors
 
 ## Extending the Instruction Registry
 
-The file `sysml_v2_agent_instructions_registry.yaml` is meant to list instruction documents.
+The file `sysml_v2_agent_instructions_registry.yaml` lists instruction documents.
 To add more documents:
 
 - Add another entry under `files:` with `id`, `title`, `description`, and `raw_url`.
 - Prefer stable, versioned URLs if you need immutability (tagged releases).
-
