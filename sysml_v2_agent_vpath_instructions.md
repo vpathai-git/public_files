@@ -170,7 +170,7 @@ When the task involves “what the editor sees” or language-server behavior:
 
 ## Extending the Instruction Registry
 
-The file `instruction_files.yaml` is meant to list instruction documents.
+The file `sysml_v2_agent_instructions_registry.yaml` is meant to list instruction documents.
 To add more documents:
 
 - Add another entry under `files:` with `id`, `title`, `description`, and `raw_url`.
