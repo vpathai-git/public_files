@@ -14,3 +14,10 @@ files:
     content_type: "text/markdown"
     language: "en"
 
+  - id: sysml_v2_best_practice
+    title: "SysML v2 Best Practices & Modellierungsregeln"
+    description: "Best practices and modeling rules for SysML v2 Beta 4, covering structure, requirements, constraints, actions, use cases, states, ports, connections, and more."
+    url: "https://github.com/vpathai-git/public_files/blob/main/sysml_v2_best_practice.md"
+    raw_url: "https://raw.githubusercontent.com/vpathai-git/public_files/main/sysml_v2_best_practice.md"
+    content_type: "text/markdown"
+    language: "de"
